@@ -3,16 +3,4 @@ defmodule Leibniz do
   Documentation for Leibniz.
   """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Leibniz.hello
-      :world
-
-  """
-  def hello do
-    :world
-  end
 end

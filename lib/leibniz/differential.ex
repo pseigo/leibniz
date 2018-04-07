@@ -1,4 +1,4 @@
-defmodule Calculus.Differential do
+defmodule Leibniz.Differential do
   @moduledoc """
   Implementations of the fundamental definitions, concepts, rules, and identities used in differential calculus.
   """
@@ -25,14 +25,12 @@ defmodule Calculus.Differential do
   ## Examples
 
       # 3x^2
-      iex> Calculus.Differential.power_rule(3, "x", 2)
+      iex> Leibniz.Differential.power_rule(3, "x", 2)
       {6, "x", 1}
 
       # 3, or 3(x)^0
-      iex> Calculus.Differential.power_rule(3, "x", 0)
+      iex> Leibniz.Differential.power_rule(3, "x", 0)
       0
-
-      # -3
   """
   def power_rule(coefficient, variable \\ "x", exponent) when is_number(coefficient) and is_binary(variable) and is_number(exponent) do
     if (exponent == 0) do
@@ -66,7 +64,7 @@ defmodule Calculus.Differential do
   ## Examples
 
       # (2x^2 - 3x + 1)^11   ->   11(4x - 3)(2x^2 - 3x + 1)^10
-      iex> Calculus.Differential.chain_rule(
+      iex> Leibniz.Differential.chain_rule(
       ...> 11, [{2, "x", 2}, {-3, "x", 1}, {1, "x", 0}], 11)
       {
         11,
@@ -76,7 +74,7 @@ defmodule Calculus.Differential do
       }
 
       # 3x^2 - 4   ->   6x - 4
-      iex> Calculus.Differential.chain_rule(1, [{3, "x", 2}, {-4, "x", 1}], 1)
+      iex> Leibniz.Differential.chain_rule(1, [{3, "x", 2}, {-4, "x", 1}], 1)
       {1, [{6, "x", 1}, {-4, "x", 0}], [{3, "x", 2}, {-4, "x", 1}], 0}
   """
   def chain_rule(coefficient, inside_fun, exponent) when is_number(coefficient) and is_list(inside_fun) and is_number(exponent) do
