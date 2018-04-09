@@ -2,7 +2,9 @@
 
 ## Terms
 
-Terms are represented as tuples in the format: `{coefficient, variable, exponent`, where `coefficient` and `exponent` are numbers and `variable` is a string.
+Terms are represented as tuples in the format: `{coefficient, variable, exponent}`, where `coefficient` and `exponent` are numbers and `variable` is a string.
+
+`exponent` refers to the exponent on `variable`.
 
 ### Examples
 
@@ -32,8 +34,8 @@ Expressions are structs in the form `%Type{args: <option>}`.
 
 - Basic: contains a list of expressions.
   - `%Basic{expression: <expr>}`
-- Power: raise an expression to a power
-  - `%Power{base: <expr>, exponent: <number>}`
+- Power: raise an expression to an exponent
+  - `%Power{expression: <expr>, exponent: <number>}`
 
 > **Todo**: Why not allow simple operations such as exponents to be an option for `%Basic{}` (or another appropriate name)?
 >
@@ -59,9 +61,8 @@ x<sup>2</sup> + 7x + 12 == `[{1, "x", 2}, {7, "x", 1}, {12, "x", 0}]`
 
 ---
 
-(x<sup>3</sup> - 5x<sup>2</sup> + 7x - 3)<sup>1/3</sup> - (x<sup>2</sup> + 1)
-
-(x<sup>3</sup> - 5x<sup>2</sup> + 7x - 3)<sup>1/3</sup> + (-x<sup>2</sup> - 1)
+1. (x<sup>3</sup> - 5x<sup>2</sup> + 7x - 3)<sup>1/3</sup> - (x<sup>2</sup> + 1)
+2. (x<sup>3</sup> - 5x<sup>2</sup> + 7x - 3)<sup>1/3</sup> + (-x<sup>2</sup> - 1)
 
 ==
 
@@ -69,7 +70,7 @@ x<sup>2</sup> + 7x + 12 == `[{1, "x", 2}, {7, "x", 1}, {12, "x", 0}]`
 [
   %Power{
     expression: [{1, "x", 3}, {-5, "x", 2}, {7, "x", 1}, {-3, "x", 0}],
-    power: 1/3
+    exponent: 1/3
   },
   %Basic{
     expression: [{-1, "x", 2}, {-1, "x", 0}]
