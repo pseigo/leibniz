@@ -26,39 +26,42 @@ defmodule Leibniz.Linear do
   defp do_solve(right, left, var) do
       left = regroup(left, var)
       right = regroup(right, var)
-      solution = add_sub(right, left)
+      solution = add_sub(right, left, var)
   end
 
-  def add_sub(right, left) do
+  def add_sub(right, left, var) do
 
-    left_terms = for {coefficient, var, exponent} <- left.terms do
-                   if(expoonent == 0) do
-                     {coefficient * -1, var, exponent}
+    left_terms = flip_sign_on(left, 0)
+    right_terms = flip_sign_on(right, 1)
 
-                   else
-                     {coefficient, var, exponent}
-                   end
-                 end
-
-    right_terms = for {coefficient, var, exponent} <- right.terms do
-                    if(expoonent == 1) do
-                      {coefficient * -1, var, exponent}
-
-                    else
-                      {coefficient, var, exponent}
-                    end
-                  end
     all_terms = [right_terms, left_terms]
                 |> Enum.concat()
                 |> Enum.group_by(&get_exponent(&1))
 
-    {all_terms.1, all_terms.0}
+    left = {add(Map.fetch!(all_terms, 1)), var, 1}
+    right = {add(Map.fetch!(all_terms, 0)), var, 0}
+
+    IO.inspect left
+    IO.inspect right
   end
 
-  def flip_sign({coefficiemt, var, exponent}) do
-    {coefficiemt * -1, var, exponent}
+  def add(terms) do
+    coefficients = for {coefficient, _, _} <- terms do
+                     coefficient
+                   end
+    Enum.sum(coefficients)
   end
 
+  def flip_sign_on(terms, target_exponent) do
+    for {coefficient, var, exponent} <- terms do
+      if(target_exponent == exponent) do
+        {coefficient * -1, var, exponent}
+
+      else
+        {coefficient, var, exponent}
+      end
+    end
+  end
 
   defp can_solve?(right, left, var) do
     terms = [right.terms, left.terms]
