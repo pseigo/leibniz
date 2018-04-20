@@ -1,7 +1,9 @@
 defmodule Leibniz.Linear do
+
   @doc """
-  Solve a linear equation with one variable, returns a fraction with the value
+  Solve a linear equation with one variable, returns a tuple representing a fraction with the value
   of the variable
+  {numerator, denominator}
 
   ## Parameters
 
@@ -14,52 +16,100 @@ defmodule Leibniz.Linear do
 
       # 4x = 16
       iex> Leibniz.Linear.solve(Leibniz.Expr{[{4, "x", 1}]}, [{16, "x", 0}])
-      4
+      {4, 1}
   """
-  def solve(right, left, var) when is_binary(var) do
-      case can_solve?(right, left, var) do
-        {:error, message} -> message
-        {:ok} -> do_solve(right, left, var)
-      end
+  def solve(left = %Leibniz.Expr{}, right = %Leibniz.Expr{}, var) when is_binary(var) do
+    case can_solve?(right, left, var) do
+      {:error, message} -> message
+      {:ok} -> do_solve(right, left, var)
+    end
+
+    do_solve(right, left, var)
   end
 
-  defp do_solve(right, left, var) do
-      left = regroup(left, var)
-      right = regroup(right, var)
-      solution = add_sub(right, left, var)
+  defp do_solve(left, right, var) do
+    # flip the sign on the right expression terms
+    # put both sides into one expression
+    # regroup similar terms - there should only be two at this point
+    # divide the negative of the the 0 coefficient by  the 1 coefficient
+
+    right = flip_sign(right.terms)
+    expr = [right, left.terms]
+           |> Enum.concat()
+           |> regroup()
+           |> divide()
+
+    case expr do
+      {:error, message} ->
+        message
+      expr ->
+        simplify(expr)
+    end
   end
 
-  def add_sub(right, left, var) do
-
-    left_terms = flip_sign_on(left, 0)
-    right_terms = flip_sign_on(right, 1)
-
-    all_terms = [right_terms, left_terms]
-                |> Enum.concat()
-                |> Enum.group_by(&get_exponent(&1))
-
-    left = {add(Map.fetch!(all_terms, 1)), var, 1}
-    right = {add(Map.fetch!(all_terms, 0)), var, 0}
-
-    IO.inspect left
-    IO.inspect right
+  def simplify({numerator, denominator}) when is_integer(numerator) and is_integer(denominator) do
+    gcd = Integer.gcd(numerator, denominator)
+    {numerator, denominator} = if(numerator < 0 and denominator < 0) do
+                                 {numerator * -1, denominator * -1}
+                               end
+    {Kernel.div(numerator, gcd), Kernel.div(denominator, gcd)}
   end
 
-  def add(terms) do
-    coefficients = for {coefficient, _, _} <- terms do
-                     coefficient
-                   end
-    Enum.sum(coefficients)
+  def divide(terms) when is_list(terms) do
+    {const, _, _} = Enum.find(terms, &get_exponent(&1) == 0)
+    {coeff, _, _} = Enum.find(terms, &get_exponent(&1) == 1)
+
+    cond do
+      const == nil and coeff == nil ->
+        {:error, "no constant or variable term found"}
+      const == nil ->
+        {:error, "no constant term found"}
+      coeff == nil ->
+        {:error, "no variable term found"}
+      true ->
+        {const * -1, coeff}
+    end
   end
 
-  def flip_sign_on(terms, target_exponent) do
+  def regroup(terms) when is_list(terms) do
+    terms
+    |> regroup_by_var()
+    |> regroup_by_exp()
+    |> add_terms()
+  end
+
+  def regroup_by_var(terms) when is_list(terms) do
+    grouped_map = Enum.group_by(terms, &get_var(&1))
+    {_, grouped_terms} = Enum.unzip(grouped_map)
+    grouped_terms
+  end
+
+  def regroup_by_exp(terms) when is_list(terms) do
+    for term <- terms do
+      grouped_map = Enum.group_by(term, &get_exponent(&1))
+      {_, grouped_terms} = Enum.unzip(grouped_map)
+      grouped_terms
+    end
+    |> Enum.concat()
+  end
+
+  def add_terms(terms) when is_list(terms) do
+    Enum.map(terms, &add_coeffs(&1))
+  end
+
+  def add_coeffs(terms) when is_list(terms) do
+    coeffs = for term <- terms do
+              {coeff, _, _} = term
+              coeff
+             end
+    sum = Enum.sum(coeffs)
+    {_, var, exp} = List.first(terms)
+    {sum, var, exp}
+  end
+
+  def flip_sign(terms) do
     for {coefficient, var, exponent} <- terms do
-      if(target_exponent == exponent) do
-        {coefficient * -1, var, exponent}
-
-      else
-        {coefficient, var, exponent}
-      end
+      {coefficient * -1, var, exponent}
     end
   end
 
@@ -77,22 +127,6 @@ defmodule Leibniz.Linear do
       true ->
         {:ok}
     end
-  end
-
-  def regroup(expr, var) do
-    similar_terms = Enum.group_by(expr.terms, &get_exponent(&1))
-
-    for {exponent, terms} <- similar_terms do
-      reduce(terms, var, exponent)
-    end
-  end
-
-  def reduce(similar_terms, var, exponent) do
-    coefficients = for {coefficiemt, _, _} <- similar_terms do
-                     coefficiemt
-                   end
-
-    {Enum.sum(coefficients), var, exponent}
   end
 
   def get_exponent ({_, _, exponent}) do
