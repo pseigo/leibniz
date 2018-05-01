@@ -5,7 +5,18 @@ defmodule Reader do
             |> String.replace("-", " -")
             |> String.replace("+", " +")
             |> String.split(" ")
-            |> extract()
+
+    if(expr?(terms)) do
+      extract(terms)
+    else
+      {:error, "invalid expression"}
+    end
+  end
+
+  def expr?(terms) when is_list(terms) do
+    pattern = ~r/([\+|\-]?\d+)(\w)?\^?(\d+)?/
+
+    Enum.all?(terms, &Regex.match?(pattern, &1))
   end
 
   def extract(terms) when is_list(terms) do
